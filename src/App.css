@@ -182,3 +182,75 @@
     border-right-color: var(--border);
   }
 }
+/* FIKIRTAS AI Premium Tasarim */
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(
+    ellipse at top,
+    #242052,
+    #080e24 70%
+  ) !important;
+  color: #ffffff !important;
+  font-family: Arial, sans-serif;
+}
+
+#root {
+  width: 100%;
+  max-width: 900px;
+  margin: auto;
+  padding: 30px 20px;
+  box-sizing: border-box;
+  border: none;
+}
+
+h1 {
+  color: #e9bf68 !important;
+  font-size: clamp(32px, 6vw, 52px);
+  letter-spacing: 2px;
+  text-shadow: 0 0 25px #e9bf6844;
+}
+
+p {
+  color: #c2cce8 !important;
+}
+
+textarea {
+  width: 100%;
+  min-height: 140px;
+  box-sizing: border-box;
+  background: #141d39;
+  color: white;
+  border: 1px solid #6550e8;
+  border-radius: 18px;
+  padding: 20px;
+  font-size: 17px;
+  outline: none;
+}
+
+textarea:focus {
+  box-shadow: 0 0 20px #6550e855;
+}
+
+button {
+  background: linear-gradient(
+    135deg, #2563eb, #9333ea
+  ) !important;
+  color: white !important;
+  border: none;
+  border-radius: 14px;
+  padding: 16px 35px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 0 25px #6550e855;
+}
+
+button:hover {
+  filter: brightness(1.2);
+}main img {
+  border-radius: 25px;
+  box-shadow: 0 0 30px #00cfff44;
+  margin-bottom: 15px;
+}
