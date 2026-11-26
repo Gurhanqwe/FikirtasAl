@@ -1,38 +1,63 @@
 import express from 'express';
-import OpenAI from 'openai';
+import { loadEnvFile } from 'node:process';
+
+try {
+  loadEnvFile();
+} catch (error) {
+  if (error.code !== 'ENOENT') throw error;
+}
 
 const app = express();
 app.use(express.json());
 
-const ai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-  });
+app.post('/api/fikir', async (req, res) => {
+  try {
+    const { fikir } = req.body;
 
-  app.post('/api/fikir', async (req, res) => {
-    try {
-        const { fikir } = req.body;
+    if (!fikir?.trim()) {
+      return res.status(400).json({
+        hata: 'Önce bir fikir yaz.'
+      });
+    }
 
-            if (!fikir?.trim()) {
-                  return res.status(400).json({
-                          hata: 'Önce bir fikir yaz.'
-                                });
-                                    }
+    const response = await fetch(
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': process.env.GEMINI_API_KEY
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: 'Bu fikri Türkçe analiz et ve geliştir: ' + fikir
+            }]
+          }]
+        })
+      }
+    );
 
-                                        const cevap = await ai.responses.create({
-                                              model: 'gpt-4.1-mini',
-                                                    instructions: 'Türkçe konuş. Kullanıcının fikrini geliştirmek için yaratıcı, uygulanabilir öneriler sun.',
-                                                          input: fikir
-                                                              });
+    const data = await response.json();
 
-                                                                  res.json({ sonuc: cevap.output_text });
-                                                                    } catch (error) {
-                                                                        res.status(500).json({
-                                                                              hata: 'Yapay zekâ yanıt veremedi.'
-                                                                                  });
-                                                                                    }
-                                                                                    });
+    if (!response.ok) {
+      return res.status(response.status).json({
+        hata: response.status === 429 ? 'Günlük kullanım limitine ulaşıldı. Lütfen daha sonra tekrar deneyin.' : 'Bir hata oluştu. Lütfen tekrar deneyin.'
+      });
+    }
 
-                                                                                    app.listen(3001, () => {
-                                                                                      console.log('Fikir Taşı AI sunucusu hazır!');
-                                                                                      });
-                                                                                      
+    res.json({
+      sonuc: data.candidates?.[0]?.content?.parts
+        ?.map(p => p.text || '').join('') || 'Yanıt alınamadı.'
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      hata: 'Sunucu hatası.'
+    });
+  }
+});
+app.use(express.static('dist'));
+app.listen(process.env.PORT || 3001, ()=> {
+  console.log('FIKIRTAS AI sunucusu hazir!');
+});
