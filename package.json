@@ -8,13 +8,14 @@
     "server": "node Server.js",
     "build": "vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "node Server.js"
   },
   "dependencies": {
+    "express": "^5.1.0",
+    "openai": "^6.0.0",
     "react": "^19.3.1",
-    "react-dom": "^19.3.1", 
-  "openai": "^6.0.0", 
-  "express": "^5.1.0"
+    "react-dom": "^19.3.1"
   },
   "devDependencies": {
     "@types/react": "^19.3.0",
