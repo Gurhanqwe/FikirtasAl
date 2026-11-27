@@ -41,6 +41,8 @@ app.post('/api/fikir', async (req, res) => {
     const data = await response.json();
 
     if (!response.ok) {
+      console.error("Gemini hatası:", response.status, data.error?.status);
+
       return res.status(response.status).json({
         hata: response.status === 429 ? 'Günlük kullanım limitine ulaşıldı. Lütfen daha sonra tekrar deneyin.' : 'Bir hata oluştu. Lütfen tekrar deneyin.'
       });
