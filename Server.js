@@ -12,13 +12,24 @@ app.use(express.json());
 
 app.post('/api/fikir', async (req, res) => {
   try {
-    const { fikir } = req.body;
+    const { fikir, gecmis = [] } = req.body;
 
-    if (!fikir?.trim()) {
+    if (typeof fikir !== 'string' || !fikir.trim()) {
       return res.status(400).json({
-        hata: 'Önce bir fikir yaz.'
+        hata: 'Önce bir mesaj yaz.'
       });
     }
+
+    const sohbet = Array.isArray(gecmis)
+      ? gecmis.slice(-20).filter(m =>
+          m &&
+          ['user', 'model'].includes(m.role) &&
+          typeof m.text === 'string'
+        ).map(m => ({
+          role: m.role,
+          parts: [{ text: m.text.slice(0, 12000) }]
+        }))
+      : [];
 
     const response = await fetch(
       'https://generativelanguage.googleapis.com/v1beta/models/gemini-4-hydrogen:generateContent',
@@ -29,11 +40,18 @@ app.post('/api/fikir', async (req, res) => {
           'x-goog-api-key': process.env.GEMINI_API_KEY
         },
         body: JSON.stringify({
-          contents: [{
+          systemInstruction: {
             parts: [{
-              text: 'Bu fikri Türkçe analiz et ve geliştir: ' + fikir
+              text: 'Sen FİKİRTAŞ AI adlı Türkçe yapay zekâ asistanısın. Önceki konuşmaları dikkate al. Kullanıcının sorularını bağlama uygun cevapla. Fikirlerini analiz et ve geliştir. Gerektiğinde iş planı, maliyet ve gelir tahminleri sun. Kesin olmayan bilgileri tahmin olarak belirt.'
             }]
-          }]
+          },
+          contents: [
+            ...sohbet,
+            {
+              role: 'user',
+              parts: [{ text: fikir }]
+            }
+          ]
         })
       }
     );
@@ -41,10 +59,12 @@ app.post('/api/fikir', async (req, res) => {
     const data = await response.json();
 
     if (!response.ok) {
-      console.error("Gemini hatası:", response.status, data.error?.status, data.error?.message);
+      console.error('Gemini hatası:', response.status);
 
       return res.status(response.status).json({
-        hata: response.status === 429 ? 'Günlük kullanım limitine ulaşıldı. Lütfen daha sonra tekrar deneyin.' : 'Bir hata oluştu. Lütfen tekrar deneyin.'
+        hata: response.status === 429
+          ? 'Kullanım limitine ulaşıldı. Lütfen daha sonra tekrar deneyin.'
+          : 'Bir hata oluştu. Lütfen tekrar deneyin.'
       });
     }
 
@@ -59,7 +79,9 @@ app.post('/api/fikir', async (req, res) => {
     });
   }
 });
+
 app.use(express.static('dist'));
-app.listen(process.env.PORT || 3001, ()=> {
-  console.log('FIKIRTAS AI sunucusu hazir!');
+
+app.listen(process.env.PORT || 3003, () => {
+  console.log('FİKİRTAŞ AI sunucusu hazır!');
 });
